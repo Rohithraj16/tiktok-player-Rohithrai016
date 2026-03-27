@@ -1,9 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { getInitialComments, makeComment } from '../../data/comments'
+import { CommentSheet } from './CommentSheet'
 import { VideoCard } from './VideoCard'
 
 export function VideoFeed({ videos }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isMuted, setIsMuted] = useState(false)
+
+  // Comment state lives here so CommentSheet renders OUTSIDE the scroll container
+  const [commentsMap, setCommentsMap] = useState(() => {
+    const map = {}
+    videos.forEach((_, i) => { map[i] = getInitialComments(i) })
+    return map
+  })
+  const [openCommentIndex, setOpenCommentIndex] = useState(null)
 
   const containerRef = useRef(undefined)
   const videoRefs = useRef([])
@@ -26,6 +36,11 @@ export function VideoFeed({ videos }) {
   useEffect(() => {
     containerRef.current?.focus()
   }, [])
+
+  // Auto-close comment sheet when user scrolls to a different video
+  useEffect(() => {
+    setOpenCommentIndex(null)
+  }, [activeIndex])
 
   // Detect active slide — clone counts as its own index temporarily
   useEffect(() => {
@@ -56,11 +71,9 @@ export function VideoFeed({ videos }) {
 
     const teleportToFirst = () => {
       if (activeIndexRef.current !== cloneIndex) return
-      // Disable snap momentarily so the instant scroll doesn't fight the snapper
       container.style.scrollSnapType = 'none'
       sectionRefs.current[0]?.scrollIntoView({ behavior: 'instant', block: 'start' })
       setActiveIndex(0)
-      // Re-enable snap after the position is committed
       requestAnimationFrame(() =>
         requestAnimationFrame(() => {
           container.style.scrollSnapType = ''
@@ -73,7 +86,6 @@ export function VideoFeed({ videos }) {
       teleportToFirst()
     }
 
-    // Fallback for browsers that don't fire scrollend
     const onScroll = () => {
       clearTimeout(fallbackTimer)
       fallbackTimer = setTimeout(teleportToFirst, 180)
@@ -89,7 +101,7 @@ export function VideoFeed({ videos }) {
     }
   }, [cloneIndex])
 
-  // Play active video, pause all others; clone plays just like any other slide
+  // Play active video, pause all others
   useEffect(() => {
     videoRefs.current.forEach((el, i) => {
       if (!el) return
@@ -114,20 +126,15 @@ export function VideoFeed({ videos }) {
     el.scrollIntoView({ behavior, block: 'start' })
   }, [])
 
-  // When last real video ends, scroll smoothly to clone → scrollend teleports to real first
   const handleVideoEnded = useCallback(
     (index) => {
       if (index !== activeIndexRef.current) return
-      if (index === lastRealIndex) {
-        scrollToIndex(cloneIndex)
-      } else if (index < lastRealIndex) {
-        scrollToIndex(index + 1)
-      }
+      if (index === lastRealIndex) scrollToIndex(cloneIndex)
+      else if (index < lastRealIndex) scrollToIndex(index + 1)
     },
     [lastRealIndex, cloneIndex, scrollToIndex],
   )
 
-  // Keyboard navigation
   const handleKeyDown = useCallback(
     (event) => {
       const current = activeIndexRef.current
@@ -135,7 +142,6 @@ export function VideoFeed({ videos }) {
         event.preventDefault()
         if (current < lastRealIndex) scrollToIndex(current + 1)
         else if (current === lastRealIndex) scrollToIndex(cloneIndex)
-        // If on clone, scrollend will already handle the teleport — do nothing
       }
       if (event.key === 'ArrowUp') {
         event.preventDefault()
@@ -152,37 +158,63 @@ export function VideoFeed({ videos }) {
     [lastRealIndex, cloneIndex, scrollToIndex],
   )
 
+  // Add a comment to the currently open video's list
+  const handleAddComment = useCallback((text) => {
+    setOpenCommentIndex((idx) => {
+      if (idx === null) return null
+      setCommentsMap((prev) => ({
+        ...prev,
+        [idx]: [...(prev[idx] ?? []), makeComment(text)],
+      }))
+      return idx
+    })
+  }, [])
+
   const handleMuteToggle = useCallback(() => setIsMuted((m) => !m), [])
 
-  const registerVideoRef = (i, node) => {
-    videoRefs.current[i] = node
-  }
+  const registerVideoRef = (i, node) => { videoRefs.current[i] = node }
   const registerSectionRef = (i, node) => {
     sectionRefs.current[i] = node
     if (node) node.setAttribute('data-index', String(i))
   }
 
+  const activeComments = openCommentIndex !== null ? (commentsMap[openCommentIndex] ?? []) : []
+
   return (
-    <main
-      ref={containerRef}
-      className="hide-scrollbar h-full w-full snap-y snap-mandatory overflow-y-scroll bg-black outline-none"
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-    >
-      {displayList.map((video, index) => (
-        <VideoCard
-          key={video.id}
-          index={index}
-          video={video}
-          activeIndex={activeIndex}
-          muted={isMuted}
-          shouldLoop={index < lastRealIndex}
-          onToggleMute={handleMuteToggle}
-          onVideoEnded={handleVideoEnded}
-          registerVideoRef={registerVideoRef}
-          registerSectionRef={registerSectionRef}
-        />
-      ))}
-    </main>
+    // Wrapper is the positioning root for the CommentSheet — it is NOT the scroll container
+    <div className="relative h-full w-full">
+      <main
+        ref={containerRef}
+        className="hide-scrollbar h-full w-full snap-y snap-mandatory overflow-y-scroll bg-black outline-none"
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+      >
+        {displayList.map((video, index) => (
+          <VideoCard
+            key={video.id}
+            index={index}
+            video={video}
+            activeIndex={activeIndex}
+            muted={isMuted}
+            shouldLoop={index < lastRealIndex}
+            commentCount={commentsMap[index]?.length ?? 0}
+            onCommentOpen={() => setOpenCommentIndex(index)}
+            onToggleMute={handleMuteToggle}
+            onVideoEnded={handleVideoEnded}
+            registerVideoRef={registerVideoRef}
+            registerSectionRef={registerSectionRef}
+          />
+        ))}
+      </main>
+
+      {/* CommentSheet is a sibling to <main>, NOT inside the scroll container.
+          This prevents transform/overflow clipping bugs when scrolling between videos. */}
+      <CommentSheet
+        isOpen={openCommentIndex !== null}
+        comments={activeComments}
+        onAddComment={handleAddComment}
+        onClose={() => setOpenCommentIndex(null)}
+      />
+    </div>
   )
 }

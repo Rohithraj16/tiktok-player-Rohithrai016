@@ -48,17 +48,12 @@ function FollowButton({ isFollowing, onToggle }) {
   )
 }
 
-export function ActionBar({ video, isLiked, likeCount, onLikeToggle }) {
+export function ActionBar({ video, isLiked, likeCount, onLikeToggle, commentCount, onCommentOpen }) {
   const [isBookmarked, setIsBookmarked] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
-  const [commentCount, setCommentCount] = useState(clampUnder999(video.comments))
 
   const displayLikes = useMemo(() => formatCount(likeCount), [likeCount])
   const displayComments = useMemo(() => formatCount(commentCount), [commentCount])
-
-  const handleCommentClick = () => {
-    setCommentCount((c) => clampUnder999(c + 1))
-  }
 
   return (
     <div className="absolute right-3 bottom-40 z-30 flex flex-col items-center gap-5">
@@ -88,7 +83,7 @@ export function ActionBar({ video, isLiked, likeCount, onLikeToggle }) {
         icon={<TbMessageDots />}
         count={displayComments}
         active={false}
-        onClick={handleCommentClick}
+        onClick={onCommentOpen}
       />
 
       {/* Share */}

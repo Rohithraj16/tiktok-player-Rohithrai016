@@ -18,6 +18,8 @@ export function VideoCard({
   activeIndex,
   muted,
   shouldLoop,
+  commentCount,
+  onCommentOpen,
   onToggleMute,
   onVideoEnded,
   registerVideoRef,
@@ -78,7 +80,6 @@ export function VideoCard({
   // ── Tap handling (single / double) ──────────────────────────────────────────
 
   const handleVideoTap = (event) => {
-    // Long-press already handled this gesture — skip tap logic
     if (longPressHandledRef.current) {
       longPressHandledRef.current = false
       return
@@ -114,9 +115,7 @@ export function VideoCard({
 
   // ── Long-press handling ──────────────────────────────────────────────────────
 
-  const cancelLongPress = () => {
-    clearTimeout(longPressTimerRef.current)
-  }
+  const cancelLongPress = () => clearTimeout(longPressTimerRef.current)
 
   const handlePointerDown = (event) => {
     if (event.button !== 0 && event.pointerType !== 'touch') return
@@ -195,30 +194,20 @@ export function VideoCard({
 
       <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-black/20 via-transparent to-black/65" />
 
-      {/* Loading skeleton — shown only on active card while buffering */}
+      {/* Loading skeleton */}
       {isActive && isBuffering && (
         <div className="pointer-events-none absolute inset-0 z-20">
           <div className="skeleton-shimmer absolute inset-0" />
-
-          {/* Fake bottom-left text bars */}
           <div className="absolute bottom-28 left-3 space-y-2">
             <div className="h-3 w-24 rounded-full bg-white/10" />
             <div className="h-2.5 w-48 rounded-full bg-white/10" />
             <div className="h-2.5 w-36 rounded-full bg-white/10" />
           </div>
-
-          {/* Fake right-side action icons */}
           <div className="absolute right-3 bottom-40 flex flex-col items-center gap-5">
             {[48, 32, 32, 32].map((size, i) => (
-              <div
-                key={i}
-                className="rounded-full bg-white/10"
-                style={{ width: size, height: size }}
-              />
+              <div key={i} className="rounded-full bg-white/10" style={{ width: size, height: size }} />
             ))}
           </div>
-
-          {/* Spinner in center */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/20 border-t-white/70" />
           </div>
@@ -230,6 +219,8 @@ export function VideoCard({
         isLiked={isLiked}
         likeCount={likeCount}
         onLikeToggle={handleLikeToggle}
+        commentCount={commentCount}
+        onCommentOpen={onCommentOpen}
       />
       <UserInfoOverlay video={video} />
       <MusicDisc coverUrl={video.musicCover} isPlaying={isPlaying && isActive} />
@@ -257,7 +248,7 @@ export function VideoCard({
       {isLongPressPaused && (
         <div className="pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center gap-2 bg-black/30">
           <BsPauseFill className="text-5xl text-white/90 drop-shadow" />
-          <span className="text-[11px] font-semibold tracking-widest text-white/60 uppercase">
+          <span className="text-[11px] font-semibold uppercase tracking-widest text-white/60">
             Hold
           </span>
         </div>
