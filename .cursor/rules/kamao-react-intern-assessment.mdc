@@ -1,0 +1,59 @@
+---
+description: Project coding architecture and standards
+alwaysApply: true
+---
+
+# Engineering Rules
+
+## Architecture
+- Keep components small and single-purpose; split UI into reusable presentational components.
+- Keep business logic in hooks or utility modules, not inline inside JSX.
+- Prefer feature-based folder structure (`features/<name>`, `components`, `hooks`, `utils`, `types`).
+- Keep data flow predictable: parent owns shared state, children receive explicit props/callbacks.
+- Avoid deep prop-drilling; use context only for truly cross-cutting state.
+
+## React Standards
+- Use functional components and hooks only.
+- Use `useEffect` only for side effects; avoid deriving render data in effects.
+- Use `useMemo`/`useCallback` only when there is a measured render or dependency benefit.
+- Use `useRef` for DOM refs and mutable non-render values.
+- Every effect must have correct dependencies and cleanup when needed.
+
+## Null and Undefined Safety
+- Do not assign `null` as a default value in state, props, or function returns.
+- Prefer `undefined`, empty arrays, or empty objects with clear typing.
+- Use optional chaining and guard clauses instead of nullable branching trees.
+- Validate external input early and normalize values at boundaries.
+- Never silence nullability with unsafe casts.
+
+## Naming Conventions
+- Function names must describe behavior with verb-first style (`get`, `set`, `create`, `update`, `toggle`, `handle`).
+- Event handlers use `handle*` naming (`handlePlayToggle`, `handleSubmit`).
+- Boolean values use `is/has/can/should` prefixes (`isMuted`, `hasError`).
+- Constants use clear domain naming; avoid ambiguous names like `data`, `temp`, `val`.
+- Component and file names use consistent casing and match exported symbol names.
+
+## Code Style and Maintainability
+- Keep functions focused and short; extract helpers when a function handles multiple concerns.
+- Avoid duplicated logic; extract shared utilities.
+- Prefer early returns over deeply nested conditionals.
+- Keep comments minimal and meaningful (explain why, not what).
+- Remove dead code, unused imports, and debug logs before finalizing.
+
+## Error Handling and Reliability
+- Handle all async errors with `try/catch` and user-safe fallbacks.
+- Never swallow errors silently.
+- Show stable UI states for loading, empty, and error conditions.
+- Protect critical UI interactions from race conditions and stale state updates.
+
+## Performance
+- Prevent unnecessary re-renders by keeping state local and stable.
+- Memoize expensive calculations only when needed.
+- Avoid creating heavy inline objects/functions in hot render paths.
+- Keep DOM updates minimal and batch related state updates.
+
+## Quality Gates
+- No console errors or warnings.
+- Run lint checks before finalizing changes.
+- Keep imports ordered and consistent.
+- Use clear commit messages tied to intent.
