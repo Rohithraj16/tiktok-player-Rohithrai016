@@ -22,6 +22,24 @@ body {
   display: none;
 }
 
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #1c1c1c 0%,
+    #2e2e2e 40%,
+    #3a3a3a 55%,
+    #2e2e2e 70%,
+    #1c1c1c 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
 @keyframes heart-burst {
   0%   { transform: scale(0) rotate(-15deg); opacity: 1; }
   25%  { transform: scale(1.4) rotate(5deg);  opacity: 1; }
