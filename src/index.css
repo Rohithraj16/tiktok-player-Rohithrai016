@@ -21,3 +21,15 @@ body {
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+@keyframes heart-burst {
+  0%   { transform: scale(0) rotate(-15deg); opacity: 1; }
+  25%  { transform: scale(1.4) rotate(5deg);  opacity: 1; }
+  55%  { transform: scale(1.1) rotate(-3deg); opacity: 1; }
+  80%  { transform: scale(1.2) rotate(0deg);  opacity: 0.9; }
+  100% { transform: scale(1.4) rotate(0deg);  opacity: 0; }
+}
+
+.animate-heart-burst {
+  animation: heart-burst 0.75s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
