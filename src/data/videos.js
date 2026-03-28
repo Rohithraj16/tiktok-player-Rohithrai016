@@ -8,6 +8,7 @@ const localVideoUrls = Object.values(localVideoModules)
 
 const baseMetadata = [
   {
+    slug: 'how-transformers-work',
     user: {
       name: 'ai_learner',
       avatar:
@@ -23,6 +24,7 @@ const baseMetadata = [
       'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=200&q=80',
   },
   {
+    slug: 'css-micro-interactions',
     user: {
       name: 'frontendflow',
       avatar:
@@ -38,6 +40,7 @@ const baseMetadata = [
       'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&q=80',
   },
   {
+    slug: 'debugging-habits',
     user: {
       name: 'codewithroh',
       avatar:
@@ -53,6 +56,7 @@ const baseMetadata = [
       'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&q=80',
   },
   {
+    slug: 'ship-faster-features',
     user: {
       name: 'productmind',
       avatar:
@@ -68,6 +72,7 @@ const baseMetadata = [
       'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=200&q=80',
   },
   {
+    slug: 'consistency-beats-intensity',
     user: {
       name: 'learnbuildrepeat',
       avatar:

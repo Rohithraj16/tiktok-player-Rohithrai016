@@ -3,8 +3,8 @@ import { getInitialComments, makeComment } from '../../data/comments'
 import { CommentSheet } from './CommentSheet'
 import { VideoCard } from './VideoCard'
 
-export function VideoFeed({ videos }) {
-  const [activeIndex, setActiveIndex] = useState(0)
+export function VideoFeed({ videos, initialIndex = 0 }) {
+  const [activeIndex, setActiveIndex] = useState(initialIndex)
   const [isMuted, setIsMuted] = useState(false)
 
   // Comment state lives here so CommentSheet renders OUTSIDE the scroll container
@@ -36,6 +36,23 @@ export function VideoFeed({ videos }) {
   useEffect(() => {
     containerRef.current?.focus()
   }, [])
+
+  // Scroll to the initial video (from URL) on first mount
+  useEffect(() => {
+    if (initialIndex === 0) return
+    const id = requestAnimationFrame(() => {
+      sectionRefs.current[initialIndex]?.scrollIntoView({ behavior: 'instant', block: 'start' })
+    })
+    return () => cancelAnimationFrame(id)
+  }, []) // intentionally runs once on mount only
+
+  // Keep the browser URL in sync with the currently visible video
+  useEffect(() => {
+    const realIndex = activeIndex >= videos.length ? 0 : activeIndex
+    const slug = videos[realIndex]?.slug
+    if (!slug) return
+    window.history.replaceState(null, '', `/video/${slug}`)
+  }, [activeIndex, videos])
 
   // Auto-close comment sheet when user scrolls to a different video
   useEffect(() => {

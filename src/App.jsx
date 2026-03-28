@@ -1,17 +1,14 @@
 import { useState } from 'react'
 import { IoSettingsOutline } from 'react-icons/io5'
+import { Route, Routes, useParams } from 'react-router-dom'
 import { BottomNav } from './components/BottomNav'
 import { SettingsMenu } from './components/SettingsMenu'
 import { videos } from './data/videos'
 import { VideoFeed } from './features/video-feed/VideoFeed'
 
-function App() {
+function AppShell({ initialIndex }) {
   const [isDark, setIsDark] = useState(true)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
-
-  const handleToggleDark = () => setIsDark((d) => !d)
-  const handleOpenSettings = () => setIsSettingsOpen(true)
-  const handleCloseSettings = () => setIsSettingsOpen(false)
 
   return (
     <div
@@ -26,28 +23,43 @@ function App() {
             : 'bg-neutral-50 sm:border sm:border-black/10'
         }`}
       >
-        <VideoFeed videos={videos} />
+        <VideoFeed videos={videos} initialIndex={initialIndex} />
 
-        {/* Persistent settings button — top-left, always visible */}
+        {/* Persistent settings button */}
         <button
           type="button"
           aria-label="Open settings"
-          onClick={handleOpenSettings}
+          onClick={() => setIsSettingsOpen(true)}
           className="absolute left-3 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm"
         >
           <IoSettingsOutline className="text-[20px]" />
         </button>
 
-        <BottomNav isDark={isDark} onOpenSettings={handleOpenSettings} />
+        <BottomNav isDark={isDark} onOpenSettings={() => setIsSettingsOpen(true)} />
         <SettingsMenu
           isOpen={isSettingsOpen}
           isDark={isDark}
-          onToggleDark={handleToggleDark}
-          onClose={handleCloseSettings}
+          onToggleDark={() => setIsDark((d) => !d)}
+          onClose={() => setIsSettingsOpen(false)}
         />
       </div>
     </div>
   )
 }
 
-export default App
+function VideoRoute() {
+  const { slug } = useParams()
+  const initialIndex = slug
+    ? Math.max(0, videos.findIndex((v) => v.slug === slug))
+    : 0
+  return <AppShell initialIndex={initialIndex} />
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<VideoRoute />} />
+      <Route path="/video/:slug" element={<VideoRoute />} />
+    </Routes>
+  )
+}

@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { FaBookmark, FaHeart, FaRegBookmark, FaRegHeart } from 'react-icons/fa'
+import { IoCheckmarkCircle } from 'react-icons/io5'
 import { RiShareForwardLine } from 'react-icons/ri'
 import { TbMessageDots } from 'react-icons/tb'
 
@@ -48,12 +49,63 @@ function FollowButton({ isFollowing, onToggle }) {
   )
 }
 
+function ShareToast({ visible }) {
+  return (
+    <div
+      className={`pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-black shadow-lg transition-all duration-300 ${
+        visible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
+      }`}
+    >
+      <IoCheckmarkCircle className="text-green-500 text-sm shrink-0" />
+      <span className="text-[11px] font-semibold whitespace-nowrap">Link copied!</span>
+    </div>
+  )
+}
+
 export function ActionBar({ video, isLiked, likeCount, onLikeToggle, commentCount, onCommentOpen }) {
   const [isBookmarked, setIsBookmarked] = useState(false)
   const [isFollowing, setIsFollowing] = useState(false)
+  const [isToastVisible, setIsToastVisible] = useState(false)
+  const toastTimerRef = useRef(undefined)
 
   const displayLikes = useMemo(() => formatCount(likeCount), [likeCount])
   const displayComments = useMemo(() => formatCount(commentCount), [commentCount])
+
+  const showToast = () => {
+    clearTimeout(toastTimerRef.current)
+    setIsToastVisible(true)
+    toastTimerRef.current = setTimeout(() => setIsToastVisible(false), 2400)
+  }
+
+  const handleShare = async () => {
+    const slug = video.slug
+    const url = slug
+      ? `${window.location.origin}/video/${slug}`
+      : window.location.href
+
+    // Mobile: use native share sheet
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `@${video.user.name} on Kamao`,
+          text: video.description.slice(0, 120),
+          url,
+        })
+        return
+      } catch {
+        // User cancelled share — fall through to clipboard
+      }
+    }
+
+    // Desktop / fallback: copy link to clipboard
+    try {
+      await navigator.clipboard.writeText(url)
+      showToast()
+    } catch {
+      // Last resort: browser prompt
+      window.prompt('Copy this link:', url)
+    }
+  }
 
   return (
     <div className="absolute right-3 bottom-40 z-30 flex flex-col items-center gap-5">
@@ -68,7 +120,7 @@ export function ActionBar({ video, isLiked, likeCount, onLikeToggle, commentCoun
         <FollowButton isFollowing={isFollowing} onToggle={() => setIsFollowing((f) => !f)} />
       </div>
 
-      {/* Like — state owned by VideoCard so double-tap syncs */}
+      {/* Like */}
       <ActionButton
         label="Like video"
         icon={isLiked ? <FaHeart /> : <FaRegHeart />}
@@ -86,13 +138,17 @@ export function ActionBar({ video, isLiked, likeCount, onLikeToggle, commentCoun
         onClick={onCommentOpen}
       />
 
-      {/* Share */}
-      <ActionButton
-        label="Share"
-        icon={<RiShareForwardLine />}
-        count="Share"
-        active={false}
-      />
+      {/* Share — with toast */}
+      <div className="relative flex flex-col items-center">
+        <ShareToast visible={isToastVisible} />
+        <ActionButton
+          label="Share video"
+          icon={<RiShareForwardLine />}
+          count="Share"
+          active={false}
+          onClick={handleShare}
+        />
+      </div>
 
       {/* Bookmark */}
       <ActionButton
