@@ -15,4 +15,4 @@ Once the server is running, open your browser and go to:
 http://localhost:5173
 
 Live Demo
-Click here to view the live app [DEPLOYED LINK ](tiktok-player-rohithrai016.vercel.app)
+Click here to view the live app [DEPLOYED LINK ](https://tiktok-player-rohithrai016.vercel.app/)
