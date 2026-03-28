@@ -12,7 +12,7 @@ A TikTok-inspired vertical video feed built with React 18, Vite, and Tailwind CS
 
 ## 🎥 Video Demo
 
-[Watch Demo on Google Drive]()
+[Watch Demo on Google Drive](https://drive.google.com/file/d/1IoC8GR1jng_nnLjyPg-Yha0UWcUDzdAT/view?usp=sharing)
 
 ---
 
